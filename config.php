@@ -1,5 +1,27 @@
 <?php
-session_start();
+
+$isHttpsRequest =
+    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
+
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.cookie_httponly', '1');
+    ini_set('session.cookie_secure', $isHttpsRequest ? '1' : '0');
+    ini_set('session.cookie_samesite', 'Lax');
+    ini_set('session.use_only_cookies', '1');
+
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $isHttpsRequest,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+
+    session_start();
+}
 
 function envOrDefault(string $key, string $default): string {
     $value = getenv($key);
@@ -14,6 +36,24 @@ function failRequest(string $message = 'Une erreur est survenue.', int $statusCo
 function logServerError(string $context, string $message): void {
     error_log('[' . $context . '] ' . $message);
 }
+
+function sendSecurityHeaders(bool $isHttpsRequest): void {
+    if (headers_sent()) {
+        return;
+    }
+
+    header('X-Frame-Options: SAMEORIGIN');
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+    header('X-XSS-Protection: 1; mode=block');
+
+    if ($isHttpsRequest) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
+
+sendSecurityHeaders($isHttpsRequest);
 
 // --- CONFIGURATION DE LA BASE DE DONNÉES ---
 define('DB_HOST', envOrDefault('DB_HOST', 'localhost'));
@@ -33,6 +73,7 @@ try {
 // --- CONFIGURATION ADMIN PANNEAU ---
 define('ADMIN_USER', envOrDefault('ADMIN_USER', 'admin'));
 define('ADMIN_PASS', envOrDefault('ADMIN_PASS', 'admin123'));
+define('ADMIN_PASS_HASH', envOrDefault('ADMIN_PASS_HASH', ''));
 define('SITE_NAME', 'Ferme Luzolo');
 
 // --- SÉCURITÉ CSRF ---
@@ -71,6 +112,14 @@ function isClient(): bool {
     return isset($_SESSION['client_id']);
 }
 
+function verifyAdminPassword(string $input): bool {
+    if (ADMIN_PASS_HASH !== '') {
+        return password_verify($input, ADMIN_PASS_HASH);
+    }
+
+    return hash_equals(ADMIN_PASS, $input);
+}
+
 function genId(): string {
     return uniqid('', true);
 }
@@ -95,6 +144,164 @@ function isValidFullName(string $name): bool {
     $name = trim($name);
     if ($name === '' || strlen($name) < 2 || strlen($name) > 100) {
         return false;
+    }
+
+    function getClientIp(): string {
+        $remote = trim($_SERVER['REMOTE_ADDR'] ?? '');
+        return $remote !== '' ? $remote : 'unknown-ip';
+    }
+
+    function getLoginIdentifier(string $secondary = ''): string {
+        $secondary = strtolower(trim($secondary));
+        $base = getClientIp();
+        return $secondary === '' ? $base : ($base . '|' . $secondary);
+    }
+
+    function readLoginAttemptsStore(string $path): array {
+        if (!file_exists($path)) {
+            return [];
+        }
+
+        $raw = file_get_contents($path);
+        if ($raw === false || trim($raw) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    function writeLoginAttemptsStore(string $path, array $store): void {
+        $json = json_encode($store, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        if ($json === false) {
+            return;
+        }
+        file_put_contents($path, $json, LOCK_EX);
+    }
+
+    function loginAttemptsPath(): string {
+        $dir = __DIR__ . '/data';
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0775, true);
+        }
+        return $dir . '/login_attempts.json';
+    }
+
+    function loginAttemptStatus(
+        string $scope,
+        string $identifier,
+        int $maxAttempts = 5,
+        int $windowSeconds = 900,
+        int $lockSeconds = 900
+    ): array {
+        $path = loginAttemptsPath();
+        $store = readLoginAttemptsStore($path);
+        $now = time();
+        $ttl = max($windowSeconds, $lockSeconds) * 2;
+
+        foreach ($store as $k => $entry) {
+            $last = (int)($entry['last_attempt_at'] ?? 0);
+            $lockedUntil = (int)($entry['locked_until'] ?? 0);
+            if (($last > 0 && ($now - $last) > $ttl) && ($lockedUntil <= 0 || ($now - $lockedUntil) > $ttl)) {
+                unset($store[$k]);
+            }
+        }
+
+        $key = hash('sha256', $scope . '|' . $identifier);
+        $entry = $store[$key] ?? null;
+
+        if (is_array($entry)) {
+            $last = (int)($entry['last_attempt_at'] ?? 0);
+            $attempts = (int)($entry['attempts'] ?? 0);
+            if ($last > 0 && ($now - $last) > $windowSeconds) {
+                $attempts = 0;
+                $entry['attempts'] = 0;
+                $entry['first_attempt_at'] = $now;
+            }
+
+            $lockedUntil = (int)($entry['locked_until'] ?? 0);
+            if ($lockedUntil > $now) {
+                writeLoginAttemptsStore($path, $store);
+                return [
+                    'allowed' => false,
+                    'remaining' => 0,
+                    'retry_after' => $lockedUntil - $now,
+                ];
+            }
+
+            if ($lockedUntil > 0 && $lockedUntil <= $now) {
+                $entry['locked_until'] = 0;
+                $entry['attempts'] = 0;
+                $entry['first_attempt_at'] = $now;
+                $store[$key] = $entry;
+                writeLoginAttemptsStore($path, $store);
+                return [
+                    'allowed' => true,
+                    'remaining' => $maxAttempts,
+                    'retry_after' => 0,
+                ];
+            }
+
+            writeLoginAttemptsStore($path, $store);
+            return [
+                'allowed' => true,
+                'remaining' => max(0, $maxAttempts - $attempts),
+                'retry_after' => 0,
+            ];
+        }
+
+        writeLoginAttemptsStore($path, $store);
+        return [
+            'allowed' => true,
+            'remaining' => $maxAttempts,
+            'retry_after' => 0,
+        ];
+    }
+
+    function registerFailedLoginAttempt(
+        string $scope,
+        string $identifier,
+        int $maxAttempts = 5,
+        int $windowSeconds = 900,
+        int $lockSeconds = 900
+    ): void {
+        $path = loginAttemptsPath();
+        $store = readLoginAttemptsStore($path);
+        $now = time();
+        $key = hash('sha256', $scope . '|' . $identifier);
+
+        $entry = $store[$key] ?? [
+            'attempts' => 0,
+            'first_attempt_at' => $now,
+            'last_attempt_at' => $now,
+            'locked_until' => 0,
+        ];
+
+        if (($now - (int)$entry['last_attempt_at']) > $windowSeconds) {
+            $entry['attempts'] = 0;
+            $entry['first_attempt_at'] = $now;
+            $entry['locked_until'] = 0;
+        }
+
+        $entry['attempts'] = (int)$entry['attempts'] + 1;
+        $entry['last_attempt_at'] = $now;
+
+        if ((int)$entry['attempts'] >= $maxAttempts) {
+            $entry['locked_until'] = $now + $lockSeconds;
+        }
+
+        $store[$key] = $entry;
+        writeLoginAttemptsStore($path, $store);
+    }
+
+    function clearLoginAttempts(string $scope, string $identifier): void {
+        $path = loginAttemptsPath();
+        $store = readLoginAttemptsStore($path);
+        $key = hash('sha256', $scope . '|' . $identifier);
+        if (isset($store[$key])) {
+            unset($store[$key]);
+            writeLoginAttemptsStore($path, $store);
+        }
     }
     return preg_match('/^[\p{L}\p{N}\s\-\'.]+$/u', $name) === 1;
 }
