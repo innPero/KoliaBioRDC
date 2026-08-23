@@ -3,9 +3,7 @@ require_once 'config.php';
 
 // --- ACTIONS POST ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!validate_csrf()) {
-        die("Erreur de sécurité CSRF.");
-    }
+    requireValidCsrf('CLIENT_POST');
 
     $action = $_POST['action'] ?? '';
 
@@ -17,10 +15,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($email) || empty($nom) || empty($pwd)) {
             $_SESSION['client_error'] = 'Tous les champs sont obligatoires.';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        } elseif (!isValidEmail($email)) {
             $_SESSION['client_error'] = 'L\'adresse email n\'est pas valide.';
+        } elseif (!isValidFullName($nom)) {
+            $_SESSION['client_error'] = 'Le nom complet n\'est pas valide.';
+        } elseif (strlen($email) > 100) {
+            $_SESSION['client_error'] = 'L\'adresse email est trop longue.';
         } elseif (strlen($pwd) < 8) {
             $_SESSION['client_error'] = 'Le mot de passe doit contenir au moins 8 caractères.';
+        } elseif (strlen($pwd) > 255) {
+            $_SESSION['client_error'] = 'Le mot de passe est trop long.';
         } elseif ($pwd !== $pwd2) {
             $_SESSION['client_error'] = 'Les mots de passe ne correspondent pas.';
         } else {
@@ -57,6 +61,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'client_login') {
         $email = trim($_POST['email'] ?? '');
         $pwd   = $_POST['password'] ?? '';
+
+        if (!isValidEmail($email) || $pwd === '') {
+            $_SESSION['client_error'] = 'Email ou mot de passe incorrect.';
+            header('Location: client.php');
+            exit;
+        }
 
         $stmtUser = $db->prepare("SELECT * FROM users WHERE email = ?");
         $stmtUser->execute([$email]);

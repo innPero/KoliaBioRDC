@@ -3,9 +3,7 @@ require_once 'config.php';
 
 // --- ACTIONS POST ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!validate_csrf()) {
-        die("Erreur de sécurité : requête non autorisée.");
-    }
+    requireValidCsrf('INDEX_POST');
 
     $action = $_POST['action'] ?? '';
 
@@ -47,6 +45,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        $pickupPoints = [
+            '🏬 Boutique Gombe (Boulevard du 30 Juin)',
+            '🏬 Boutique Limete (7ème Rue)',
+            '🏬 Boutique Bandalungwa (Avenue Kimbondo)',
+            '🏬 Boutique Kintambo (Rond-point Magasin)',
+        ];
+        $mobileOperators = ['M-Pesa', 'Orange Money', 'Airtel Money', 'Africell Cash'];
+
+        $clientNom = trim($_POST['client_nom'] ?? '');
+        $clientEmail = trim($_POST['client_email'] ?? '');
+        $clientTel = trim($_POST['client_tel'] ?? '');
+        $pointRetrait = trim($_POST['point_retrait'] ?? '');
+        $paymentMethod = $_POST['payment_method'] ?? 'cod';
+        $mobileOperator = trim($_POST['mobile_operator'] ?? '');
+        $mobileNumber = trim($_POST['mobile_number'] ?? '');
+        $note = trim($_POST['note'] ?? '');
+
+        if (!isValidFullName($clientNom)) {
+            $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Le nom complet renseigné n\'est pas valide.'];
+            header('Location: index.php?page=commande');
+            exit;
+        }
+        if (!isValidEmail($clientEmail)) {
+            $_SESSION['flash'] = ['type' => 'error', 'msg' => 'L\'adresse email de commande est invalide.'];
+            header('Location: index.php?page=commande');
+            exit;
+        }
+        if (!isValidPhone($clientTel)) {
+            $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Le numéro de téléphone de contact est invalide.'];
+            header('Location: index.php?page=commande');
+            exit;
+        }
+        if (!in_array($pointRetrait, $pickupPoints, true)) {
+            $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Le point de retrait sélectionné est invalide.'];
+            header('Location: index.php?page=commande');
+            exit;
+        }
+        if (!in_array($paymentMethod, ['cod', 'mobile_money'], true)) {
+            $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Le mode de paiement sélectionné est invalide.'];
+            header('Location: index.php?page=commande');
+            exit;
+        }
+        if ($paymentMethod === 'mobile_money') {
+            if (!in_array($mobileOperator, $mobileOperators, true)) {
+                $_SESSION['flash'] = ['type' => 'error', 'msg' => 'L\'opérateur Mobile Money sélectionné est invalide.'];
+                header('Location: index.php?page=commande');
+                exit;
+            }
+            if (!isValidPhone($mobileNumber)) {
+                $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Le numéro Mobile Money est invalide.'];
+                header('Location: index.php?page=commande');
+                exit;
+            }
+        } else {
+            $mobileOperator = null;
+            $mobileNumber = null;
+        }
+        if (strlen($note) > 500) {
+            $_SESSION['flash'] = ['type' => 'error', 'msg' => 'La note de commande est trop longue (500 caractères maximum).'];
+            header('Location: index.php?page=commande');
+            exit;
+        }
+        if ($note === '') {
+            $note = null;
+        }
+
         try {
             $db->beginTransaction();
 
@@ -57,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $prod = $stmt->fetch();
 
                 if (!$prod || $prod['stock'] < $item['quantite']) {
-                    throw new Exception("Le produit '" . ($prod['nom'] ?? 'Inconnu') . "' n'est plus disponible en quantité suffisante.");
+                    throw new RuntimeException("Le produit '" . ($prod['nom'] ?? 'Inconnu') . "' n'est plus disponible en quantité suffisante.");
                 }
 
                 $stmtUpdate = $db->prepare("UPDATE products SET stock = stock - ? WHERE id = ?");
@@ -67,10 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // 2. Générer le Code Unique de Retrait (ex: LZL-A89E)
             $code_retrait = 'LZL-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
 
-            $payment_method = $_POST['payment_method'] ?? 'cod';
-            $paiement_statut = ($payment_method === 'mobile_money') ? 'Payé (Simulé)' : 'À payer en boutique';
-            $mobile_operator = ($payment_method === 'mobile_money') ? ($_POST['mobile_operator'] ?? null) : null;
-            $mobile_number = ($payment_method === 'mobile_money') ? ($_POST['mobile_number'] ?? null) : null;
+            $paiement_statut = ($paymentMethod === 'mobile_money') ? 'Payé (Simulé)' : 'À payer en boutique';
             $order_id = genId();
 
             // Enregistrement de la commande avec point de retrait et code
@@ -78,17 +139,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmtOrder->execute([
                 $order_id,
                 date('Y-m-d H:i:s'),
-                trim($_POST['client_nom'] ?? ''),
-                trim($_POST['client_email'] ?? ''),
-                trim($_POST['client_tel'] ?? ''),
-                $_POST['point_retrait'] ?? '', // Point de retrait physique sélectionné
+                $clientNom,
+                $clientEmail,
+                $clientTel,
+                $pointRetrait, // Point de retrait physique sélectionné
                 $code_retrait, // Code unique généré
-                trim($_POST['note'] ?? null),
+                $note,
                 cartTotal(),
-                $payment_method,
+                $paymentMethod,
                 $paiement_statut,
-                $mobile_operator,
-                $mobile_number
+                $mobileOperator,
+                $mobileNumber
             ]);
 
             // 3. Enregistrer les articles
@@ -115,16 +176,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: client.php?page=mon-espace');
             exit;
 
-        } catch (Exception $e) {
-            $db->rollBack();
-            $_SESSION['flash'] = ['type' => 'error', 'msg' => $e->getMessage()];
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            logServerError('CHECKOUT', $e->getMessage());
+            $msg = ($e instanceof RuntimeException)
+                ? $e->getMessage()
+                : 'Impossible de finaliser la commande pour le moment. Merci de réessayer.';
+            $_SESSION['flash'] = ['type' => 'error', 'msg' => $msg];
             header('Location: index.php?page=panier');
             exit;
         }
     }
 
     if ($action === 'contact_send') {
-        $_SESSION['flash'] = ['type' => 'success', 'msg' => 'Votre message a bien été envoyé. Nous vous répondrons sous 48h.'];
+        $nom = trim($_POST['nom'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $sujet = trim($_POST['sujet'] ?? '');
+        $message = trim($_POST['message'] ?? '');
+
+        if (!isValidFullName($nom)) {
+            $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Veuillez entrer un nom valide.'];
+        } elseif (!isValidEmail($email)) {
+            $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Veuillez entrer une adresse email valide.'];
+        } elseif ($message === '' || strlen($message) < 10 || strlen($message) > 2000) {
+            $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Le message doit contenir entre 10 et 2000 caractères.'];
+        } elseif (strlen($sujet) > 150) {
+            $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Le sujet est trop long (150 caractères maximum).'];
+        } else {
+            $_SESSION['flash'] = ['type' => 'success', 'msg' => 'Votre message a bien été envoyé. Nous vous répondrons sous 48h.'];
+        }
         header('Location: index.php?page=contact');
         exit;
     }
