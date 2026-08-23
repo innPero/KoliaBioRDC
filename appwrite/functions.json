@@ -1,0 +1,60 @@
+{
+  "functions": [
+    {
+      "id": "checkout-create-order",
+      "name": "checkout-create-order",
+      "runtime": "node-20.0",
+      "entrypoint": "src/main.js",
+      "path": "../functions/checkout-create-order",
+      "execute": ["users"],
+      "events": [],
+      "schedule": "",
+      "vars": {
+        "APPWRITE_DATABASE_ID": "kolia_db",
+        "COL_PRODUCTS": "products",
+        "COL_ORDERS": "orders",
+        "COL_ORDER_ITEMS": "order_items"
+      }
+    },
+    {
+      "id": "admin-update-order-status",
+      "name": "admin-update-order-status",
+      "runtime": "node-20.0",
+      "entrypoint": "src/main.js",
+      "path": "../functions/admin-update-order-status",
+      "execute": ["users"],
+      "vars": {
+        "APPWRITE_DATABASE_ID": "kolia_db",
+        "COL_ORDERS": "orders",
+        "ADMIN_TEAM_ID": "admins"
+      }
+    },
+    {
+      "id": "admin-product-upsert",
+      "name": "admin-product-upsert",
+      "runtime": "node-20.0",
+      "entrypoint": "src/main.js",
+      "path": "../functions/admin-product-upsert",
+      "execute": ["users"],
+      "vars": {
+        "APPWRITE_DATABASE_ID": "kolia_db",
+        "COL_PRODUCTS": "products",
+        "ADMIN_TEAM_ID": "admins"
+      }
+    },
+    {
+      "id": "admin-delete-order",
+      "name": "admin-delete-order",
+      "runtime": "node-20.0",
+      "entrypoint": "src/main.js",
+      "path": "../functions/admin-delete-order",
+      "execute": ["users"],
+      "vars": {
+        "APPWRITE_DATABASE_ID": "kolia_db",
+        "COL_ORDERS": "orders",
+        "COL_ORDER_ITEMS": "order_items",
+        "ADMIN_TEAM_ID": "admins"
+      }
+    }
+  ]
+}
