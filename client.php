@@ -61,8 +61,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'client_login') {
         $email = trim($_POST['email'] ?? '');
         $pwd   = $_POST['password'] ?? '';
+        $identifier = getLoginIdentifier($email);
+        $throttle = loginAttemptStatus('client', $identifier, 5, 900, 900);
+
+        if (!$throttle['allowed']) {
+            $_SESSION['client_error'] = 'Trop de tentatives. Réessayez dans ' . max(1, (int)$throttle['retry_after']) . ' seconde(s).';
+            header('Location: client.php');
+            exit;
+        }
 
         if (!isValidEmail($email) || $pwd === '') {
+            registerFailedLoginAttempt('client', $identifier, 5, 900, 900);
             $_SESSION['client_error'] = 'Email ou mot de passe incorrect.';
             header('Location: client.php');
             exit;
@@ -73,12 +82,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $found = $stmtUser->fetch();
 
         if ($found && password_verify($pwd, $found['password'])) {
+            clearLoginAttempts('client', $identifier);
             $_SESSION['client_id']    = $found['id'];
             $_SESSION['client_nom']   = $found['nom'];
             $_SESSION['client_email'] = $found['email'];
             $_SESSION['flash']        = ['type' => 'success', 'msg' => "Bon retour parmi nous, {$found['nom']} !"];
             header('Location: client.php?page=mon-espace');
         } else {
+            registerFailedLoginAttempt('client', $identifier, 5, 900, 900);
             $_SESSION['client_error'] = 'Email ou mot de passe incorrect.';
             header('Location: client.php');
         }

@@ -4,10 +4,23 @@ require_once 'config.php';
 // --- AUTHENTIFICATION ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'admin_login') {
     requireValidCsrf('ADMIN_LOGIN');
-    if ($_POST['username'] === ADMIN_USER && $_POST['password'] === ADMIN_PASS) {
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $identifier = getLoginIdentifier($username);
+    $throttle = loginAttemptStatus('admin', $identifier, 5, 900, 900);
+
+    if (!$throttle['allowed']) {
+        $_SESSION['admin_error'] = 'Trop de tentatives de connexion. Réessayez dans ' . max(1, (int)$throttle['retry_after']) . ' seconde(s).';
+        header('Location: admin.php');
+        exit;
+    }
+
+    if (hash_equals(ADMIN_USER, $username) && verifyAdminPassword($password)) {
+        clearLoginAttempts('admin', $identifier);
         $_SESSION['admin_logged_in'] = true;
         header('Location: admin.php?section=dashboard');
     } else {
+        registerFailedLoginAttempt('admin', $identifier, 5, 900, 900);
         $_SESSION['admin_error'] = 'Identifiants d\'administration incorrects.';
         header('Location: admin.php');
     }
