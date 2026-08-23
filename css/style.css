@@ -1,0 +1,207 @@
+/* ── Ferme Dubois – Feuille de styles ─────────────────────────────────────── */
+:root {
+  --vert:      #2a5c45;
+  --vert-m:    #3a7a5e;
+  --vert-pale: #e4f0ea;
+  --fond:      #f4f8f5;
+  --sombre:    #0f1f18;
+  --texte:     #1a2e25;
+  --gris:      #5a6f65;
+  --bordure:   #c8d8d0;
+  --blanc:     #ffffff;
+  --danger:    #c0392b;
+  --info:      #2563eb;
+  --warning:   #d97706;
+  --success:   #059669;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Helvetica Neue', Arial, sans-serif; color: var(--texte); background: var(--blanc); }
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+
+/* ── Typographie ─────────────────────────────────────────────────────────── */
+.serif { font-family: Georgia, 'Times New Roman', serif; }
+h1,h2,h3 { font-family: Georgia, serif; font-weight: normal; }
+
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+.container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+@media(max-width:900px){ .grid-3,.grid-4 { grid-template-columns:1fr 1fr; } .grid-2 { grid-template-columns:1fr; } }
+@media(max-width:600px){ .grid-3,.grid-4,.grid-2 { grid-template-columns:1fr; } }
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.site-header { background: var(--blanc); border-bottom: 1px solid var(--bordure); position: sticky; top: 0; z-index: 100; }
+.site-header .container { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+.logo { font-family: Georgia,serif; font-size: 22px; color: var(--vert); font-weight: bold; }
+.nav { display: flex; align-items: center; gap: 28px; }
+.nav a { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--texte); padding-bottom: 2px; border-bottom: 2px solid transparent; transition: color .2s, border-color .2s; }
+.nav a:hover, .nav a.active { color: var(--vert); border-bottom-color: var(--vert); }
+
+/* ── Boutons ─────────────────────────────────────────────────────────────── */
+.btn { display: inline-block; padding: 11px 28px; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; border: none; font-family: inherit; transition: opacity .2s; }
+.btn:hover { opacity: .85; }
+.btn-primary  { background: var(--vert);   color: var(--blanc); }
+.btn-outline  { background: transparent;   color: var(--texte); border: 1px solid var(--texte); }
+.btn-sm       { padding: 7px 16px; font-size: 11px; }
+.btn-danger   { background: var(--danger); color: var(--blanc); }
+.btn-info     { background: var(--info);   color: var(--blanc); }
+.btn-warning  { background: var(--warning);color: var(--blanc); }
+
+/* ── Hero ────────────────────────────────────────────────────────────────── */
+.hero { position: relative; height: 500px; overflow: hidden; }
+.hero img { width: 100%; height: 100%; object-fit: cover; }
+.hero-overlay { position: absolute; inset: 0; background: rgba(8,22,14,.62); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 20px; }
+.hero-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,.7); margin-bottom: 16px; }
+.hero h1 { font-size: 54px; color: var(--blanc); line-height: 1.1; margin-bottom: 16px; }
+.hero h1 em { color: #a8d4bc; font-style: italic; }
+.hero p { font-size: 15px; color: rgba(255,255,255,.85); margin-bottom: 32px; max-width: 500px; line-height: 1.7; }
+
+/* ── Stats bar ───────────────────────────────────────────────────────────── */
+.stats-bar { background: var(--vert); padding: 28px 0; }
+.stats-bar .container { display: grid; grid-template-columns: repeat(4,1fr); text-align: center; }
+.stat { border-right: 1px solid rgba(255,255,255,.2); padding: 0 20px; }
+.stat:last-child { border-right: none; }
+.stat-num { font-family: Georgia,serif; font-size: 36px; color: var(--blanc); margin-bottom: 4px; }
+.stat-lbl { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,.75); }
+
+/* ── Sections ────────────────────────────────────────────────────────────── */
+.section { padding: 64px 0; }
+.section-fond { background: var(--fond); }
+.section-title-sm { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--vert); margin-bottom: 10px; }
+.section-title { font-size: 36px; color: var(--texte); }
+.section-title em { color: var(--vert); font-style: italic; }
+
+/* ── Cartes produit ──────────────────────────────────────────────────────── */
+.card { background: var(--blanc); border: 1px solid var(--vert-pale); overflow: hidden; }
+.card img { width: 100%; height: 200px; object-fit: cover; }
+.card-body { padding: 18px 20px 22px; }
+.card-cat { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--vert); margin-bottom: 6px; }
+.card-nom { font-size: 18px; margin-bottom: 6px; color: var(--texte); }
+.card-desc { font-size: 13px; color: var(--gris); margin-bottom: 8px; line-height: 1.5; }
+.card-stock { font-size: 12px; color: var(--gris); margin-bottom: 14px; }
+.card-stock.low { color: var(--danger); font-weight: 600; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; }
+.card-prix { font-family: Georgia,serif; font-size: 18px; color: var(--vert); }
+.card-prix small { font-family: inherit; font-size: 12px; color: var(--gris); }
+
+/* ── Bandeau page ────────────────────────────────────────────────────────── */
+.page-banner { background: var(--fond); border-bottom: 1px solid var(--bordure); padding: 50px 0; text-align: center; }
+.page-banner h1 { font-size: 42px; }
+
+/* ── Filtres ─────────────────────────────────────────────────────────────── */
+.filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--bordure); }
+.filters input { padding: 8px 14px; border: 1px solid var(--bordure); font-size: 13px; flex: 1; min-width: 160px; outline: none; font-family: inherit; }
+.filter-btn { padding: 7px 18px; border: 1px solid var(--bordure); background: var(--blanc); color: var(--gris); cursor: pointer; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; font-family: inherit; }
+.filter-btn.active { border-color: var(--vert); background: var(--vert); color: var(--blanc); }
+
+/* ── Panier ──────────────────────────────────────────────────────────────── */
+.cart-layout { display: grid; grid-template-columns: 1fr 380px; gap: 50px; }
+.cart-item { display: flex; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--bordure); align-items: center; }
+.cart-item img { width: 80px; height: 68px; object-fit: cover; }
+.cart-item-info { flex: 1; }
+.cart-item-nom { font-family: Georgia,serif; font-size: 17px; }
+.cart-item-prix { font-size: 13px; color: var(--gris); }
+.qty-box { display: flex; align-items: center; gap: 8px; }
+.qty-box button { width: 28px; height: 28px; border: 1px solid var(--bordure); background: var(--blanc); cursor: pointer; font-size: 16px; }
+.qty-box input { width: 44px; text-align: center; border: 1px solid var(--bordure); padding: 4px; font-size: 14px; font-family: inherit; }
+.cart-total-prix { font-family: Georgia,serif; font-size: 17px; color: var(--vert); min-width: 60px; text-align: right; }
+.remove-btn { background: none; border: none; cursor: pointer; color: #bbb; font-size: 18px; }
+.order-box { background: var(--fond); padding: 28px; }
+.order-box h3 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--vert); margin-bottom: 20px; }
+.order-total { display: flex; justify-content: space-between; border-top: 1px solid var(--bordure); margin-top: 8px; padding-top: 16px; margin-bottom: 20px; }
+.order-total span { font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+.order-total strong { font-family: Georgia,serif; font-size: 22px; color: var(--vert); }
+
+/* ── Formulaires ─────────────────────────────────────────────────────────── */
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gris); margin-bottom: 6px; }
+.form-input { width: 100%; padding: 10px 14px; border: 1px solid var(--bordure); font-size: 14px; font-family: inherit; outline: none; background: var(--blanc); color: var(--texte); }
+.form-input:focus { border-color: var(--vert); }
+textarea.form-input { resize: vertical; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-full { grid-column: span 2; }
+.form-select { width: 100%; padding: 10px 14px; border: 1px solid var(--bordure); font-size: 14px; font-family: inherit; outline: none; background: var(--blanc); }
+
+/* ── Messages flash ──────────────────────────────────────────────────────── */
+.flash { padding: 12px 18px; margin-bottom: 20px; font-size: 14px; }
+.flash-success { background: #d1fae5; border-left: 4px solid var(--success); color: #065f46; }
+.flash-error   { background: #fee2e2; border-left: 4px solid var(--danger);  color: #7f1d1d; }
+.flash-info    { background: #dbeafe; border-left: 4px solid var(--info);    color: #1e40af; }
+
+/* ── Badge statut ────────────────────────────────────────────────────────── */
+.badge { display: inline-block; padding: 3px 10px; font-size: 11px; letter-spacing: .5px; border-radius: 2px; font-weight: 600; }
+.badge-wait    { background:#fef3c7; color:#92400e; }
+.badge-confirm { background:#dbeafe; color:#1e40af; }
+.badge-ship    { background:#ede9fe; color:#5b21b6; }
+.badge-deliver { background:#d1fae5; color:#065f46; }
+.badge-cancel  { background:#fee2e2; color:#7f1d1d; }
+
+/* ── Table admin ─────────────────────────────────────────────────────────── */
+.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--blanc); }
+.admin-table th { padding: 10px 14px; text-align: left; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: var(--gris); font-weight: 600; border-bottom: 2px solid var(--bordure); }
+.admin-table td { padding: 10px 14px; border-bottom: 1px solid var(--bordure); vertical-align: middle; }
+.admin-table tr:hover td { background: var(--fond); }
+.admin-table img { width: 52px; height: 44px; object-fit: cover; }
+
+/* ── Admin layout ────────────────────────────────────────────────────────── */
+.admin-wrap { display: flex; min-height: 100vh; }
+.admin-sidebar { width: 230px; background: var(--sombre); flex-shrink: 0; display: flex; flex-direction: column; }
+.sidebar-brand { padding: 28px 24px 20px; border-bottom: 1px solid #1e3328; }
+.sidebar-brand-name { font-family: Georgia,serif; font-size: 18px; color: var(--blanc); }
+.sidebar-brand-sub  { font-size: 11px; color: #556b5f; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+.sidebar-nav { flex: 1; padding: 16px 0; }
+.sidebar-nav a { display: block; padding: 12px 24px; font-size: 13px; color: #8a9e96; border-left: 3px solid transparent; transition: all .2s; }
+.sidebar-nav a:hover { color: var(--blanc); background: rgba(255,255,255,.05); }
+.sidebar-nav a.active { color: var(--blanc); background: var(--vert); border-left-color: #a8d4bc; }
+.sidebar-footer { padding: 20px 24px; border-top: 1px solid #1e3328; font-size: 12px; color: #556b5f; }
+.sidebar-footer a { color: #556b5f; }
+.sidebar-footer a:hover { color: var(--blanc); }
+.admin-main { flex: 1; background: #f0ece6; padding: 36px 40px; overflow: auto; }
+.admin-header { margin-bottom: 32px; }
+.admin-header h1 { font-size: 30px; color: var(--texte); font-weight: normal; }
+.admin-header .breadcrumb { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--vert); margin-bottom: 6px; }
+
+/* ── Stat cards (dashboard) ──────────────────────────────────────────────── */
+.stat-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 2px; margin-bottom: 28px; }
+.stat-card { background: var(--blanc); padding: 26px 22px; }
+.stat-card-num { font-family: Georgia,serif; font-size: 38px; color: var(--vert); margin-bottom: 6px; }
+.stat-card-lbl { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--gris); }
+
+/* ── Panel (admin box) ───────────────────────────────────────────────────── */
+.panel { background: var(--blanc); padding: 28px; margin-bottom: 24px; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.panel-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--vert); }
+
+/* ── Pied de page ────────────────────────────────────────────────────────── */
+.site-footer { background: var(--sombre); color: var(--blanc); padding: 50px 0 28px; margin-top: 40px; }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+.footer-brand { font-family: Georgia,serif; font-size: 22px; margin-bottom: 12px; }
+.footer-desc { font-size: 13px; color: #8a9e96; line-height: 1.7; max-width: 280px; }
+.footer-col-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--vert-m); margin-bottom: 16px; }
+.footer-col a, .footer-col p { display: block; font-size: 13px; color: #8a9e96; margin-bottom: 8px; }
+.footer-col a:hover { color: var(--blanc); }
+.footer-bottom { border-top: 1px solid #1e3328; padding-top: 20px; display: flex; justify-content: space-between; font-size: 12px; color: #3e5448; }
+
+/* ── Auth cards ──────────────────────────────────────────────────────────── */
+.auth-wrap { min-height: 100vh; background: #d8ebe0; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+.auth-card { background: var(--blanc); width: 100%; max-width: 480px; }
+.auth-tabs { display: flex; border-bottom: 1px solid var(--bordure); }
+.auth-tab { flex: 1; padding: 14px; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; border: none; border-bottom: 2px solid transparent; background: var(--blanc); cursor: pointer; font-family: inherit; color: var(--gris); }
+.auth-tab.active { color: var(--vert); border-bottom-color: var(--vert); }
+.auth-body { padding: 32px 36px 36px; }
+.auth-title { font-family: Georgia,serif; font-size: 26px; color: var(--vert); text-align: center; margin-bottom: 6px; }
+.auth-sub { font-size: 13px; color: var(--gris); text-align: center; margin-bottom: 28px; }
+
+/* ── Page vide ────────────────────────────────────────────────────────────── */
+.empty-state { text-align: center; padding: 80px 20px; }
+.empty-state-icon { font-size: 54px; margin-bottom: 16px; }
+.empty-state h2 { font-size: 28px; color: var(--texte); margin-bottom: 12px; font-weight: normal; }
+.empty-state p { color: var(--gris); margin-bottom: 24px; }
+
+/* ── Détail commande ──────────────────────────────────────────────────────── */
+.order-detail { background: var(--fond); padding: 16px; margin-bottom: 20px; }
+.order-detail-name { font-family: Georgia,serif; font-size: 16px; margin-bottom: 6px; }
+.order-detail-info { font-size: 12px; color: var(--gris); line-height: 1.6; }
+.order-lines td { padding: 8px 0; border-bottom: 1px solid var(--bordure); font-size: 13px; }

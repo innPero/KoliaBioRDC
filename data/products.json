@@ -1,0 +1,113 @@
+[
+    {
+        "id": "p1",
+        "nom": "Tomates fraîches",
+        "prix": 2500,
+        "unite": "kg",
+        "categorie": "Légumes",
+        "stock": 45,
+        "description": "Tomates rouges cultivées sans pesticides",
+        "image": "https:\/\/images.unsplash.com\/photo-1546094096-0df4bcaaa337?w=600&h=400&fit=crop"
+    },
+    {
+        "id": "p2",
+        "nom": "Carottes bio",
+        "prix": 1800,
+        "unite": "kg",
+        "categorie": "Légumes",
+        "stock": 76,
+        "description": "Carottes fraîchement récoltées de notre potager",
+        "image": "https:\/\/images.unsplash.com\/photo-1598170845058-32b9d6a5da37?w=600&h=400&fit=crop"
+    },
+    {
+        "id": "p3",
+        "nom": "Pommes de terre",
+        "prix": 1200,
+        "unite": "kg",
+        "categorie": "Légumes",
+        "stock": 120,
+        "description": "Variété Bintje, idéale pour la friture",
+        "image": "https:\/\/images.unsplash.com\/photo-1518977676601-b53f82aba655?w=600&h=400&fit=crop"
+    },
+    {
+        "id": "p4",
+        "nom": "Laitues",
+        "prix": 900,
+        "unite": "pièce",
+        "categorie": "Légumes",
+        "stock": 30,
+        "description": "Laitues croquantes coupées le matin",
+        "image": "https:\/\/images.unsplash.com\/photo-1622206151226-18ca2c9ab4a1?w=600&h=400&fit=crop"
+    },
+    {
+        "id": "p5",
+        "nom": "Courgettes",
+        "prix": 1500,
+        "unite": "kg",
+        "categorie": "Légumes",
+        "stock": 40,
+        "description": "Courgettes vertes tendres, parfaites en gratin",
+        "image": "https:\/\/images.unsplash.com\/photo-1615485500704-8e990f9900f7?w=600&h=400&fit=crop"
+    },
+    {
+        "id": "p6",
+        "nom": "Œufs de ferme",
+        "prix": 3500,
+        "unite": "douzaine",
+        "categorie": "Œufs & Laitages",
+        "stock": 200,
+        "description": "Œufs de poules élevées en plein air",
+        "image": "https:\/\/images.unsplash.com\/photo-1582722872445-44dc5f7e3c8f?w=600&h=400&fit=crop"
+    },
+    {
+        "id": "p7",
+        "nom": "Fromage de chèvre",
+        "prix": 4000,
+        "unite": "pièce",
+        "categorie": "Œufs & Laitages",
+        "stock": 20,
+        "description": "Fromage frais de nos chèvres",
+        "image": "https:\/\/images.unsplash.com\/photo-1486297678162-eb2a19b0a32d?w=600&h=400&fit=crop"
+    },
+    {
+        "id": "p8",
+        "nom": "Pommes Golden",
+        "prix": 2000,
+        "unite": "kg",
+        "categorie": "Fruits",
+        "stock": 90,
+        "description": "Pommes dorées, sucrées et croquantes",
+        "image": "https:\/\/images.unsplash.com\/photo-1567306226416-28f0efdc88ce?w=600&h=400&fit=crop"
+    },
+    {
+        "id": "p9",
+        "nom": "Fraises",
+        "prix": 4500,
+        "unite": "barquette",
+        "categorie": "Fruits",
+        "stock": 25,
+        "description": "Fraises parfumées de saison",
+        "image": "https:\/\/images.unsplash.com\/photo-1464965911861-746a04b4bca6?w=600&h=400&fit=crop"
+    },
+    {
+        "id": "p10",
+        "nom": "Miel de fleurs",
+        "prix": 6000,
+        "unite": "pot",
+        "categorie": "Épicerie",
+        "stock": 35,
+        "description": "Miel artisanal récolté de nos ruches",
+        "image": "https:\/\/images.unsplash.com\/photo-1558642452-9d2a7deb7f62?w=600&h=400&fit=crop"
+    },
+    {
+        "id": "6a37b8e4428de2.13729411",
+        "nom": "Pondu",
+        "prix": 3000,
+        "unite": "piece",
+        "categorie": "Plantes",
+        "stock": 120,
+        "description": "du bas congo",
+        "image": "https:\/\/encrypted-tbn0.gstatic.com\/images?q=tbn:ANd9GcRE-xit1FxnroccYCNyA1rrw9Oy77JppQzHeLq7jFlB0A&s=10"
+    }
+    
+]
