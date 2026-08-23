@@ -3,9 +3,7 @@ require_once 'config.php';
 
 // --- AUTHENTIFICATION ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'admin_login') {
-    if (!validate_csrf()) {
-        die("Erreur de sécurité CSRF.");
-    }
+    requireValidCsrf('ADMIN_LOGIN');
     if ($_POST['username'] === ADMIN_USER && $_POST['password'] === ADMIN_PASS) {
         $_SESSION['admin_logged_in'] = true;
         header('Location: admin.php?section=dashboard');
@@ -24,9 +22,7 @@ if (($_GET['action'] ?? '') === 'logout') {
 
 // --- ACTIONS POST SÉCURISÉES ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isAdmin()) {
-    if (!validate_csrf()) {
-        die("Erreur de sécurité CSRF.");
-    }
+    requireValidCsrf('ADMIN_POST');
 
     $action = $_POST['action'] ?? '';
 
@@ -85,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isAdmin()) {
         $statut = $_POST['statut'] ?? '';
         $valides = ['en_attente', 'prete', 'retiree', 'annulee']; // prete = Dispo en boutique | retiree = Retrait effectué
         
-        if (in_array($statut, $valides)) {
+        if (in_array($statut, $valides, true)) {
             $stmt = $db->prepare("UPDATE orders SET statut = ? WHERE id = ?");
             $stmt->execute([$statut, $id]);
         }
@@ -362,8 +358,8 @@ if ($section === 'produits') {
     
     // Pagination
     $limit = 10;
-    $pageQuery = max(1, (int)($_GET['p'] ?? 1));
-    $offset = ($pageQuery - 1) * $limit;
+    $currentPage = max(1, (int)($_GET['p'] ?? 1));
+    $offset = ($currentPage - 1) * $limit;
 
     if ($searchQuery !== '') {
         $stmtCount = $db->prepare("SELECT COUNT(*) FROM products WHERE nom LIKE ? OR categorie LIKE ?");
@@ -610,7 +606,7 @@ if ($section === 'commandes') {
                     <?= csrf_field() ?>
                     <input type="hidden" name="action" value="delete_order">
                     <input type="hidden" name="order_id" value="<?= escape($order['id']) ?>">
-                    <button type="submit" class="btn btn-danger btn-sm">🗑/th> Supprimer</button>
+                    <button type="submit" class="btn btn-danger btn-sm">🗑️ Supprimer</button>
                 </form>
             </div>
         </div>
@@ -635,9 +631,10 @@ if ($section === 'commandes') {
         }
 
         // COMPTER LE TOTAL POUR PAGINATION
-        $stmtCount = $db->prepare($sql);
+        $sqlCount = str_replace('SELECT *', 'SELECT COUNT(*)', $sql);
+        $stmtCount = $db->prepare($sqlCount);
         $stmtCount->execute($params);
-        $totalOrders = $stmtCount->rowCount();
+        $totalOrders = (int)$stmtCount->fetchColumn();
 
         // PAGINATION
         $limit = 10;

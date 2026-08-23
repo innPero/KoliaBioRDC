@@ -1,23 +1,38 @@
 <?php
 session_start();
 
+function envOrDefault(string $key, string $default): string {
+    $value = getenv($key);
+    return ($value === false || $value === '') ? $default : $value;
+}
+
+function failRequest(string $message = 'Une erreur est survenue.', int $statusCode = 400): void {
+    http_response_code($statusCode);
+    exit($message);
+}
+
+function logServerError(string $context, string $message): void {
+    error_log('[' . $context . '] ' . $message);
+}
+
 // --- CONFIGURATION DE LA BASE DE DONNÉES ---
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'luzolo_db');
-define('DB_USER', 'root');
-define('DB_PASS', ''); // Par défaut vide sur XAMPP Windows
+define('DB_HOST', envOrDefault('DB_HOST', 'localhost'));
+define('DB_NAME', envOrDefault('DB_NAME', 'luzolo_db'));
+define('DB_USER', envOrDefault('DB_USER', 'root'));
+define('DB_PASS', envOrDefault('DB_PASS', '')); // Par défaut vide sur XAMPP Windows
 
 try {
     $db = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Erreur de connexion à la base de données : " . $e->getMessage());
+    logServerError('DB_CONNECTION', $e->getMessage());
+    failRequest('Service temporairement indisponible. Merci de réessayer plus tard.', 500);
 }
 
 // --- CONFIGURATION ADMIN PANNEAU ---
-define('ADMIN_USER', 'admin');
-define('ADMIN_PASS', 'admin123');
+define('ADMIN_USER', envOrDefault('ADMIN_USER', 'admin'));
+define('ADMIN_PASS', envOrDefault('ADMIN_PASS', 'admin123'));
 define('SITE_NAME', 'Ferme Luzolo');
 
 // --- SÉCURITÉ CSRF ---
@@ -31,6 +46,13 @@ function csrf_field(): string {
 
 function validate_csrf(): bool {
     return isset($_POST['csrf_token']) && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token']);
+}
+
+function requireValidCsrf(string $context = 'CSRF'): void {
+    if (!validate_csrf()) {
+        logServerError($context, 'Token CSRF invalide.');
+        failRequest('Erreur de sécurité. Veuillez actualiser la page et réessayer.', 403);
+    }
 }
 
 // --- FONCTIONS UTILITAIRES ---
@@ -59,6 +81,22 @@ function escape(string $s): string {
 
 function formatDate(string $date): string {
     return date('d/m/Y', strtotime($date));
+}
+
+function isValidEmail(string $email): bool {
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
+function isValidPhone(string $phone): bool {
+    return preg_match('/^\+?[0-9\s\-\(\)]{8,20}$/', $phone) === 1;
+}
+
+function isValidFullName(string $name): bool {
+    $name = trim($name);
+    if ($name === '' || strlen($name) < 2 || strlen($name) > 100) {
+        return false;
+    }
+    return preg_match('/^[\p{L}\p{N}\s\-\'.]+$/u', $name) === 1;
 }
 
 // --- GESTION DU PANIER ---
