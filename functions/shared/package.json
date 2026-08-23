@@ -1,9 +1,0 @@
-{
-  "name": "kolia-appwrite-functions",
-  "private": true,
-  "version": "1.0.0",
-  "type": "commonjs",
-  "dependencies": {
-    "node-appwrite": "^14.1.0"
-  }
-}

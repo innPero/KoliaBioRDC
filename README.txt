@@ -77,16 +77,3 @@ CI:
 - Le projet est actuellement structuré en gros fichiers PHP (public/admin/client).
 - Une prochaine amélioration recommandée est la séparation en modules
   (routes, contrôleurs, services, vues).
-
-8) Migration Appwrite (Sites + Databases + Auth + Functions)
--------------------------------------------------------------
-Une base de migration vers Appwrite est fournie dans :
-- /home/runner/work/KoliaBioRDC/KoliaBioRDC/site
-- /home/runner/work/KoliaBioRDC/KoliaBioRDC/functions
-- /home/runner/work/KoliaBioRDC/KoliaBioRDC/appwrite
-- /home/runner/work/KoliaBioRDC/KoliaBioRDC/migrations
-- /home/runner/work/KoliaBioRDC/KoliaBioRDC/docs
-
-Références:
-- Matrice de migration : /home/runner/work/KoliaBioRDC/KoliaBioRDC/docs/migration-matrix-appwrite.md
-- Procédure de déploiement : /home/runner/work/KoliaBioRDC/KoliaBioRDC/docs/appwrite-deployment.md
